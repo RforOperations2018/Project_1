@@ -43,15 +43,15 @@ body <- dashboardBody(tabItems(
                               fluidRow(),
                               fluidRow(
                                 tabBox(
-                                  tabPanel(),
-                                  tabPanel()
+                                  tabPanel("Name"),
+                                  tabPanel("Another Name")
                                   )
                                 )
                               )
                       )
                       )
 # Define UI for shiny dashboard
-ui <- dashboard(header, sidebar, body)
+ui <- dashboardPage(header, sidebar, body)
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
