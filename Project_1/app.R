@@ -17,37 +17,44 @@ library(shinythemes)
 # created header along with dropdown menu items
 header <- dashboardHeader(title = "Project 1",
                           dropdownMenu(type = "notifications",
-                                       notificationItem(text = "",
-                                                        icon = icon("users"))),
+                                       notificationItem(text = "help",
+                                                        icon = icon("users"))
+                                       ),
                           dropdownMenu(type = "tasks",
-                                       taskItem(value = 50,
-                                                color = "purple")),
+                                       taskItem(value = 50, text = "Try",
+                                                color = "purple", "Percentage")
+                                       ),
                           dropdownMenu(type = "messages",
                                        messageItem(
                                          from = "Barack Obama",
                                          message = HTML("Change we can believe in"),
-                                         icon = icon("exclamation point"))))
+                                         icon = icon("exclamation point"))
+                                       )
+                          )
 # created sidebar (will put in inputs later)
 sidebar <- dashboardSidebar(sidebarMenu(id = "tabs",
                                         menuItem("Plot.1", icon = icon("bar-chart"), tabname = "Plot1"),
                                         menuItem("Plot.2", icon = icon("bar-chart"), tabname = "Plot2"),
-                                        menuItem("Plot.3", icon = icon("bar-chart"), tabname = "Plot3")))
-
+                                        menuItem("Plot.3", icon = icon("bar-chart"), tabname = "Plot3")
+                                        )
+                            )
 body <- dashboardBody(tabItems(
-                      tabItem(Plot1, 
+                      tabItem("Plot1", 
                               fluidRow(),
                               fluidRow(
                                 tabBox(
                                   tabPanel(),
                                   tabPanel()
-                                  )))
-))
+                                  )
+                                )
+                              )
+                      )
+                      )
 # Define UI for shiny dashboard
 ui <- dashboard(header, sidebar, body)
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-   
    
 }
 
