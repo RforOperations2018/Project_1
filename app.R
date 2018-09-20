@@ -14,6 +14,13 @@ library(dplyr)
 library(plotly)
 library(shinythemes)
 
+Death_data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States.csv")
+mapDetails <- list(scope = 'usa',
+                   projection = list(type = 'albers usa'),
+                   showlakes = TRUE,
+                   lakecolor = toRGB('white')
+                   )
+
 # created header along with dropdown menu items
 header <- dashboardHeader(title = "Project 1",
                           dropdownMenu(type = "notifications",
@@ -32,30 +39,56 @@ header <- dashboardHeader(title = "Project 1",
                                        )
                           )
 # created sidebar (will put in inputs later)
-sidebar <- dashboardSidebar(sidebarMenu(id = "tabs",
-                                        menuItem("Plot.1", icon = icon("bar-chart"), tabname = "Plot1"),
-                                        menuItem("Plot.2", icon = icon("bar-chart"), tabname = "Plot2"),
-                                        menuItem("Plot.3", icon = icon("bar-chart"), tabname = "Plot3")
-                                        )
-                            )
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    id = "tabs",
+    menuItem("Maps", icon = icon("map"), tabname = "map1"),
+    menuItem("Plots", icon = icon("chart-line"), tabname = "plot2"),
+    menuItem("Death Data Table", icon = icon("table"), tabname = "table"),
+    selectInput("year", 
+                "Pick a Year: ",
+                choices = sort(unique(Death_data$Year)),
+                multiple = FALSE,
+                selectize = TRUE,
+                selected = 2006
+                )
+              )
+            )
 body <- dashboardBody(tabItems(
-                      tabItem("Plot1", 
-                              fluidRow(),
+                      tabItem("map1", 
                               fluidRow(
-                                tabBox(
-                                  tabPanel(),
-                                  tabPanel()
+                                infoBoxOutput("Overall Deaths"),
+                                valueBoxOutput("Average Death Rate")
+                              ),
+                              fluidRow(
+                                tabBox(title = "Maps",
+                                  width = 12,
+                                  selectInput("cause",
+                                              "Pick a cause of death: ",
+                                              choices = sort(unique(Death_data$Cause.Name)),
+                                              multiple = FALSE,
+                                              selectize = TRUE,
+                                              selected = "All causes"
+                                  ),
+                                  tabPanel("totaldeathmap", plotlyOutput("df1.map")),
+                                  tabPanel("deathratemap", plotlyOutput("df2.map"))
                                   )
                                 )
                               )
                       )
-                      )
+                    )
 # Define UI for shiny dashboard
-ui <- dashboard(header, sidebar, body)
+ui <- dashboardPage(header, sidebar, body)
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-   
+   # deathInput <- reactive ({
+   #   Death_data %>% filter( input$year == Year & input$cause == Cause.Name)
+   # })
+   # output$heatmap <- renderPlotly({
+   #   df1 <- deathInput()
+   # })
+   # 
 }
 
 # Run the application 
