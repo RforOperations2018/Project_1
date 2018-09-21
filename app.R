@@ -73,18 +73,16 @@ sidebar <- dashboardSidebar(
     
               )
             )
-body <- dashboardBody(tabItem("map1", 
-                              # fluidRow(
-                              #   infoBoxOutput("Overall Deaths"),
-                              #   valueBoxOutput("Average Death Rate")
-                              # ),
-                              fluidRow(
+body <- dashboardBody(tabItems(
+                        tabItem(tabName = "maps", 
+                             fluidRow(
                                 infoBoxOutput("total"),
                                 valueBoxOutput("rate")
                               ),
                               fluidRow(
-                                tabBox(title = "Maps",
+                                tabBox(title = "Graphics", id ="help",
                                   width = 12,
+                                  # tabsetPanel("everything",
                                   # selectInput("cause",
                                   #             "Pick a cause of death: ",
                                   #             choices = sort(unique(State.Death.data$cause.name)),
@@ -92,22 +90,24 @@ body <- dashboardBody(tabItem("map1",
                                   #             selectize = TRUE,
                                   #             selected = "Alzheimers"
                                   # ),
-                                  tabPanel(title = "totaldeathmap", plotOutput("heatmap1")),
-                                  tabPanel(title = "deathratemap", plotOutput("df2.map"))
+                                  tabPanel(title = "totaldeathmap", value = plotOutput("heatmap1")),
+                                  tabPanel(title = "deathratemap", value = plotOutput("df2.map")),
+                                  tabPanel(title = "plot", value = plotOutput("practice1")),
+                                  tabPanel(title = "plot2", value = plotOutput("practice2"))
                                   ))),
-                      tabItem(title = "plots1",
-                              tabBox(title = "Plots",
-                                     width  = 12, 
-                              tabPanel(title = "plot", plotOutput("practice1")),
-                                 tabPanel(title = "plot2", plotOutput("practice2"))
-                                ),
+                      # tabItem(title = "plots1",
+                      #         tabBox(title = "Plots",
+                      #                width  = 12, 
+                      #         
+                      #           )),
                       tabItem(title = "datatable",
-                              tabBox(title = "Datatable",
-                                     width = 12,
-                                tabPanel(title = "only1datatable", dataTableOutput("table")))
+                              fluidPage(
+                                box(title = "Selected Character Stats", DT::dataTableOutput("table"), width = 12)))
+                              # tabBox(title = "Datatable",
+                              #        width = 12,
+                              #   tabPanel(title = "only1datatable", dataTableOutput("table")))
                       )
             )
-)
 # Define UI for shiny dashboard
 ui <- dashboardPage(header, sidebar, body)
 
@@ -116,23 +116,23 @@ server <- function(input, output) {
    deathInput <- reactive ({
      State.Death.data %>% filter( input$year == year & input$cause == cause.name)
    })
-   output$heatmap1 <- renderPlot({
-     df1 <- deathInput()
-     states1 <- map_data("usa")
-     data("fifty_states")
-     ggplot(df1, aes(map_id = state)) +
-       # map points to the fifty_states shape data
-       geom_map(aes(fill = deaths), map = fifty_states) +
-       expand_limits(x = fifty_states$long, y = fifty_states$lat) +
-       coord_map() +
-       scale_x_continuous(breaks = NULL) +
-       scale_y_continuous(breaks = NULL) +
-       scale_fill_gradient(low = "#56B1F7", high = "#132B43") +
-       labs(x = "", y = "") +
-       theme(legend.position = "right",
-             panel.background = element_blank())
-     
-   })
+   # output$heatmap1 <- renderPlot({
+   #   df1 <- deathInput()
+   #   states1 <- map_data("usa")
+   #   data("fifty_states")
+   #   ggplot(df1, aes(map_id = state)) +
+   #     # map points to the fifty_states shape data
+   #     geom_map(aes(fill = deaths), map = fifty_states) +
+   #     expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+   #     coord_map() +
+   #     scale_x_continuous(breaks = NULL) +
+   #     scale_y_continuous(breaks = NULL) +
+   #     scale_fill_gradient(low = "#56B1F7", high = "#132B43") +
+   #     labs(x = "", y = "") +
+   #     theme(legend.position = "right",
+   #           panel.background = element_blank())
+   #   
+   # })
 
 }
 
