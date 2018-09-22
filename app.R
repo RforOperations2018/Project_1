@@ -1,4 +1,4 @@
-
+#loading libraries
 library(shiny)
 library(shinydashboard)
 library(reshape2)
@@ -8,25 +8,26 @@ library(shinythemes)
 
 Raw.Death.data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States.csv")
 Raw.Death.data$Year <- factor(Raw.Death.data$Year)
-State.Death.data <- filter(Raw.Death.data, State != "United States")
+State.Death.data <- Raw.Death.data %>% filter(State != "United States") %>% droplevels()
 Country.Death.data <- filter(Raw.Death.data, State == "United States")
 # created header along with dropdown menu items
-header <- dashboardHeader(title = "Deaths in America",
-                          dropdownMenu(type = "notifications",
-                                       notificationItem(text = "BE CAREFUL!",
-                                                        icon = icon("users"))
-                                       ),
-                          dropdownMenu(type = "tasks",
-                                       taskItem(value = 50, text = "Avoid cliffs",
-                                                color = "purple", "Percentage")
-                                       ),
-                          dropdownMenu(type = "messages",
-                                       messageItem(
-                                         from = "Dr. Spaceman",
-                                         message = HTML("The expiration date is not a suggestion!"),
-                                         icon = icon("exclamation point"))
-                                       )
-                          )
+header <- dashboardHeader(title = "Deaths in America")
+# header <- dashboardHeader(title = "Deaths in America",
+#                           dropdownMenu(type = "notifications",
+#                                        notificationItem(text = "BE CAREFUL!",
+#                                                         icon = icon("users"))
+#                                        ),
+#                           dropdownMenu(type = "tasks",
+#                                        taskItem(value = 50, text = "Avoid cliffs",
+#                                                 color = "purple", "Percentage")
+#                                        ),
+#                           dropdownMenu(type = "messages",
+#                                        messageItem(
+#                                          from = "Dr. Spaceman",
+#                                          message = HTML("The expiration date is not a suggestion!"),
+#                                          icon = icon("exclamation point"))
+#                                        )
+#                           )
 # created sidebar with inputs
 sidebar <- dashboardSidebar(
   sidebarMenu(
@@ -55,26 +56,24 @@ sidebar <- dashboardSidebar(
                 )
           )
 )
-
-
-body <- dashboardBody(tabItems(
+body <- dashboardBody(
                         tabItem("plot", 
                              # fluidRow(
                              #    infoBoxOutput("total"),
-                             #    valueBoxOutput("rate")
+                             #    valueBoxOutput("rate"),
+                             #    valueBoxOutput("Yes or No")
                              #  ),
-                             # fluidRow(
+                             fluidRow(
                                 tabBox(title = "Plots",
                                   width = 12,
-                                  tabsetPanel(
                                   tabPanel("Cumulative Deaths", plotOutput("plot1")),
                                   tabPanel("Death Rate", plotOutput("plot2")),
                                   tabPanel("Time Plot", plotOutput("plot3"))
                                   ))),
                        tabItem(title = "datatable",
-                              #fluidPage(
+                              fluidPage(
                                 box(title = "Death Data Table", DT::dataTableOutput("datatable"), width = 12)))
-                      #)
+                      
             )
 # Define UI for shiny dashboard
 ui <- dashboardPage(header, sidebar, body)
@@ -83,7 +82,7 @@ ui <- dashboardPage(header, sidebar, body)
 server <- function(input, output) {
   #Reactive Elements 
   deathInput <- reactive ({
-     State.Death.data %>% filter( input$year == Year & input$cause == Cause.Name)
+     State.Death.data %>% filter(input$year == Year & input$cause == Cause.Name)
    })
   totaldeathInput <- reactive({
     Country.Death.data %>% filter( input$year == Year & input$cause == Cause.Name)
@@ -106,26 +105,26 @@ server <- function(input, output) {
    
    #Create Plot that Maps Total Deaths for a Particular Cause across all 50 states  
    output$plot1 <- renderPlot({
-     df2 <- deathInput()
-     ggplot(df2, aes(x = State, y = Deaths)) + geom_bar(stat = "identity") + ggtitle("Total Deaths per Accident per Year") 
+     # df2 <- deathInput()
+     ggplot(State.Death.data, aes(x = State, y = Deaths)) + geom_bar(stat = "identity") + ggtitle("Total Deaths per Accident per Year") 
               + ylab("Total Deaths")
      })
    
    #Create Plot that Maps the Age Adjusted Death Rate for a Particular Cause across all 50 states
   output$plot2 <-  renderPlot({
-    df2 <- deathInput()
-    ggplot(df2, aes(x = State, y = Age.adjusted.Death.Rate)) + geom_bar(stat = "identity") + ggtitle("Death Rate (per 100,000) per Accident per Year") 
+    # df3 <- deathInput()
+    ggplot(State.Death.data, aes(x = State, y = Age.adjusted.Death.Rate)) + geom_bar(stat = "identity") + ggtitle("Death Rate (per 100,000) per Accident per Year") 
              + ylab("Adjusted Death Rate")
   })
   
   output$plot3 <-  renderPlot({
-    df2 <- deathInput()
-    ggplot(df2, aes(x = Year, y = Age.adjusted.Death.Rate)) + geom_bar(stat = "identity") + ggtitle("Death Rate (per 100,000) per Accident per Year")
+    # df4 <- deathInput()
+    ggplot(State.Death.data, aes(x = Year, y = Age.adjusted.Death.Rate)) + geom_bar(stat = "identity") + ggtitle("Death Rate (per 100,000) per Accident per Year")
     + ylab("Adjusted Death Rate")
   })
   # Create a Data
-  output$table <- DT::renderDataTable({
-    subset(deathInput(), select = c(State, Cause.Name, Deaths, Age.adjusted.Death.Rate))
+  output$datatable <- DT::renderDataTable({
+    subset(State.Death.data, select = c(State, Cause.Name, Deaths, Age.adjusted.Death.Rate))
   })
 }
 
@@ -133,8 +132,8 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server)
 
 
-#State.Death.data %>% filter(Year == 2016 & Cause.Name == "Alzheimer's disease") %>% 
-#ggplot(aes(x = State, y = Deaths)) + geom_bar(stat = 'identity')
+# State.Death.data %>% filter(Year == 2016 & Cause.Name == "Alzheimer's disease") %>% 
+# ggplot(aes(x = State, y = Deaths)) + geom_bar(stat = 'identity')
 #practice.data1$Year <- factor(practice.data1$Year)
 #filter(practice.data1, State == "Alabama" & Cause.Name == "Alzheimer's disease") %>% 
 # ggplot(aes(x = Year, y = Deaths, group=1)) + geom_line()
