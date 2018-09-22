@@ -44,7 +44,7 @@ sidebar <- dashboardSidebar(
     selectInput("state",
                 "State:",
                 choices = sort(unique(State.Death.data$State)),
-                multiple = FALSE,
+                multiple = TRUE,
                 selectize = TRUE,
                 selected = "Alabama"),
     selectInput("year", 
@@ -57,24 +57,45 @@ sidebar <- dashboardSidebar(
           )
 )
 body <- dashboardBody(
-                        tabItem("plot", 
-                             # fluidRow(
-                             #    infoBoxOutput("total"),
-                             #    valueBoxOutput("rate"),
-                             #    valueBoxOutput("Yes or No")
-                             #  ),
-                             fluidRow(
-                                tabBox(title = "Plots",
-                                  width = 12,
-                                  tabPanel("Cumulative Deaths", plotOutput("plot1")),
-                                  tabPanel("Death Rate", plotOutput("plot2")),
-                                  tabPanel("Time Plot", plotOutput("plot3"))
-                                  ))),
-                       tabItem(title = "datatable",
-                              fluidPage(
-                                box(title = "Death Data Table", DT::dataTableOutput("datatable"), width = 12)))
-                      
+  tabItems(
+    tabItem("plot",
+            # fluidRow(
+            #   infoBoxOutput("mass"),
+            #   valueBoxOutput("height")
+            # ),
+            fluidRow(
+              tabBox(title = "Plot",
+                     width = 12,
+                     tabPanel("Cumulative Deaths", plotOutput("plot1")),
+                     tabPanel("Death Rate", plotOutput("plot2")),
+                     tabPanel("Time Plot", plotOutput("plot3")))
             )
+    ),
+    tabItem("datatable",
+            fluidPage(
+              box(title = "Selected Character Stats", DT::dataTableOutput("datatable"), width = 12))
+    )
+  ) 
+)
+            #             tabItem("plot", 
+            #                  # fluidRow(
+            #                  #    infoBoxOutput("total"),
+            #                  #    valueBoxOutput("rate"),
+            #                  #    valueBoxOutput("Yes or No")
+            #                  #  ),
+            #                  fluidRow(
+            #                     tabBox(title = "Plots",
+            #                       width = 12,
+            #                       tabPanel("Cumulative Deaths", plotOutput("plot1")),
+            #                       tabPanel("Death Rate", plotOutput("plot2")),
+            #                       tabPanel("Time Plot", plotOutput("plot3"))
+            #                       ))),
+            #            tabItem("datatable",
+            #                   fluidPage(
+            #                     tabBox(title = "Death Data Table", DT::dataTableOutput("datatable"), width = 12)))
+            #           
+            # )
+
 # Define UI for shiny dashboard
 ui <- dashboardPage(header, sidebar, body)
 
@@ -82,10 +103,11 @@ ui <- dashboardPage(header, sidebar, body)
 server <- function(input, output) {
   #Reactive Elements 
   deathInput <- reactive ({
-     State.Death.data %>% filter(input$year == Year & input$cause == Cause.Name)
+     State.Death.data %>% filter(Year == input$year & Cause.Name == input$cause & State %in% input$State)
    })
+  
   totaldeathInput <- reactive({
-    Country.Death.data %>% filter( input$year == Year & input$cause == Cause.Name)
+    Country.Death.data %>% filter( input$year == Year & input$cause == Cause.Name & State %in% input$State)
   })
    #Gauges and Infoboxes
   # totaldeathInput
@@ -105,26 +127,33 @@ server <- function(input, output) {
    
    #Create Plot that Maps Total Deaths for a Particular Cause across all 50 states  
    output$plot1 <- renderPlot({
-     # df2 <- deathInput()
-     ggplot(State.Death.data, aes(x = State, y = Deaths)) + geom_bar(stat = "identity") + ggtitle("Total Deaths per Accident per Year") 
-              + ylab("Total Deaths")
+     df2 <- deathInput()
+     ggplot(df2, aes(x = State, y = Deaths, color = State)) + 
+       geom_bar(stat = "identity") + 
+       ggtitle("Total Deaths per Accident per Year") + 
+       ylab("Total Deaths") +
+       theme(axis.text.x = element_text(angle = 90, hjust = 1))
      })
    
    #Create Plot that Maps the Age Adjusted Death Rate for a Particular Cause across all 50 states
   output$plot2 <-  renderPlot({
-    # df3 <- deathInput()
-    ggplot(State.Death.data, aes(x = State, y = Age.adjusted.Death.Rate)) + geom_bar(stat = "identity") + ggtitle("Death Rate (per 100,000) per Accident per Year") 
-             + ylab("Adjusted Death Rate")
+    df3 <- deathInput()
+    ggplot(df3, aes(x = State, y = Age.adjusted.Death.Rate, color = State)) + 
+      geom_bar(stat = "identity") + 
+      ggtitle("Death Rate (per 100,000) per Accident per Year") + 
+      ylab("Adjusted Death Rate")
   })
   
   output$plot3 <-  renderPlot({
-    # df4 <- deathInput()
-    ggplot(State.Death.data, aes(x = Year, y = Age.adjusted.Death.Rate)) + geom_bar(stat = "identity") + ggtitle("Death Rate (per 100,000) per Accident per Year")
-    + ylab("Adjusted Death Rate")
+    df4 <- deathInput()
+    ggplot(df4, aes(x = Year, y = Age.adjusted.Death.Rate)) + 
+      geom_bar(stat = "identity") + 
+      ggtitle("Death Rate (per 100,000) per Accident per Year") + 
+      ylab("Adjusted Death Rate")
   })
   # Create a Data
   output$datatable <- DT::renderDataTable({
-    subset(State.Death.data, select = c(State, Cause.Name, Deaths, Age.adjusted.Death.Rate))
+    subset(deathInput(), select = c(State, Cause.Name, Deaths, Age.adjusted.Death.Rate))
   })
 }
 
