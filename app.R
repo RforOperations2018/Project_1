@@ -1,11 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 
 library(shiny)
 library(shinydashboard)
@@ -13,100 +5,74 @@ library(reshape2)
 library(dplyr)
 library(plotly)
 library(shinythemes)
-library(fiftystater)
-library(maps)
-#Read Data
+
 Raw.Death.data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States.csv")
-#Filter Data to only includ states
+Raw.Death.data$Year <- factor(Raw.Death.data$Year)
 State.Death.data <- filter(Raw.Death.data, State != "United States")
 
-# death_data_proto <- filter(State.Death.data, year == 2016 & cause.name == "Alzheimer's disease")
-# 
-# Load US Data
-# states1 <- map_data("usa")
-# data("fifty_states")
-# Format Data 
-names(State.Death.data) <- tolower(names(State.Death.data))
-State.Death.data$State <- tolower(State.Death.data$state)
-
-# 
-# p
-
 # created header along with dropdown menu items
-header <- dashboardHeader(title = "Project 1",
+header <- dashboardHeader(title = "Deaths in America",
                           dropdownMenu(type = "notifications",
-                                       notificationItem(text = "help",
+                                       notificationItem(text = "BE CAREFUL!",
                                                         icon = icon("users"))
                                        ),
                           dropdownMenu(type = "tasks",
-                                       taskItem(value = 50, text = "Try",
+                                       taskItem(value = 50, text = "Avoid cliffs",
                                                 color = "purple", "Percentage")
                                        ),
                           dropdownMenu(type = "messages",
                                        messageItem(
-                                         from = "Barack Obama",
-                                         message = HTML("Change we can believe in"),
+                                         from = "Dr. Spaceman",
+                                         message = HTML("The expiration date is not a suggestion!"),
                                          icon = icon("exclamation point"))
                                        )
                           )
-# created sidebar (will put in inputs later)
+# created sidebar with put in inputs later)
 sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
-    menuItem("Maps", icon = icon("map"), tabname = "map1"),
-    menuItem("Plots", icon = icon("chart-line"), tabname = "plot2"),
-    menuItem("Death Data Table", icon = icon("table"), tabname = "table"),
-    selectInput("year", 
-                "Pick a Year: ",
-                choices = sort(unique(State.Death.data$year)),
-                multiple = FALSE,
-                selectize = TRUE,
-                selected = 2006
-                ),
-    selectInput("cause",
+    menuItem("Plots", icon = icon("bar-chart"), tabname = "plot"),
+    menuItem("Death Data Table",icon = icon("table"), tabname = "datatable"),
+    radioButtons("cause",
                 "Pick a cause of death: ",
-                choices = sort(unique(State.Death.data$cause.name)),
+                choices = unique(State.Death.data$Cause.Name),
+                #multiple = FALSE,
+                #selectize = TRUE,
+                selected = "Alzheimer's disease"
+                ),
+    selectInput("state",
+                "State:",
+                choices = sort(unique(State.Death.data$State)),
                 multiple = FALSE,
                 selectize = TRUE,
-                selected = "Alzheimers"
+                selected = "Alabama"),
+    selectInput("year", 
+                 "Pick a Year: ",
+                 choices = sort(unique(State.Death.data$Year)),
+                 multiple = FALSE,
+                 selectize = TRUE,
+                 selected = 1999
                 )
-    
-              )
-            )
+          )
+)
 body <- dashboardBody(tabItems(
-                        tabItem(tabName = "maps", 
-                             fluidRow(
-                                infoBoxOutput("total"),
-                                valueBoxOutput("rate")
-                              ),
-                              fluidRow(
-                                tabBox(title = "Graphics", id ="help",
+                        tabItem("plot", 
+                             # fluidRow(
+                             #    infoBoxOutput("total"),
+                             #    valueBoxOutput("rate")
+                             #  ),
+                             # fluidRow(
+                                tabBox(title = "Plots",
                                   width = 12,
-                                  # tabsetPanel("everything",
-                                  # selectInput("cause",
-                                  #             "Pick a cause of death: ",
-                                  #             choices = sort(unique(State.Death.data$cause.name)),
-                                  #             multiple = FALSE,
-                                  #             selectize = TRUE,
-                                  #             selected = "Alzheimers"
-                                  # ),
-                                  tabPanel(title = "totaldeathmap", value = plotOutput("heatmap1")),
-                                  tabPanel(title = "deathratemap", value = plotOutput("df2.map")),
-                                  tabPanel(title = "plot", value = plotOutput("practice1")),
-                                  tabPanel(title = "plot2", value = plotOutput("practice2"))
+                                  tabsetPanel(
+                                  tabPanel("Cumulative Deaths", plotOutput("plot1")),
+                                  tabPanel("Death Rate", plotOutput("plot2")),
+                                  tabPanel("Time Plot", plotOutput("plot3"))
                                   ))),
-                      # tabItem(title = "plots1",
-                      #         tabBox(title = "Plots",
-                      #                width  = 12, 
-                      #         
-                      #           )),
-                      tabItem(title = "datatable",
-                              fluidPage(
-                                box(title = "Selected Character Stats", DT::dataTableOutput("table"), width = 12)))
-                              # tabBox(title = "Datatable",
-                              #        width = 12,
-                              #   tabPanel(title = "only1datatable", dataTableOutput("table")))
-                      )
+                       tabItem(title = "datatable",
+                              #fluidPage(
+                                box(title = "Death Data Table", DT::dataTableOutput("datatable"), width = 12)))
+                      #)
             )
 # Define UI for shiny dashboard
 ui <- dashboardPage(header, sidebar, body)
@@ -114,28 +80,40 @@ ui <- dashboardPage(header, sidebar, body)
 # Define server logic required to draw a histogram
 server <- function(input, output) {
    deathInput <- reactive ({
-     State.Death.data %>% filter( input$year == year & input$cause == cause.name)
+     State.Death.data %>% filter( input$year == Year & input$cause == Cause.Name)
    })
-   # output$heatmap1 <- renderPlot({
-   #   df1 <- deathInput()
-   #   states1 <- map_data("usa")
-   #   data("fifty_states")
-   #   ggplot(df1, aes(map_id = state)) +
-   #     # map points to the fifty_states shape data
-   #     geom_map(aes(fill = deaths), map = fifty_states) +
-   #     expand_limits(x = fifty_states$long, y = fifty_states$lat) +
-   #     coord_map() +
-   #     scale_x_continuous(breaks = NULL) +
-   #     scale_y_continuous(breaks = NULL) +
-   #     scale_fill_gradient(low = "#56B1F7", high = "#132B43") +
-   #     labs(x = "", y = "") +
-   #     theme(legend.position = "right",
-   #           panel.background = element_blank())
-   #   
-   # })
-
+   #Create Plot that Maps Total Deaths for a Particular Cause across all 50 states  
+   output$plot1 <- renderPlot({
+     df2 <- deathInput()
+     ggplot(df2, aes(x = State, y = Deaths)) + geom_bar(stat = "identity") + ggtitle("Total Deaths per Accident per Year") 
+              + ylab("Total Deaths")
+     })
+   
+   #Create Plot that Maps the Age Adjusted Death Rate for a Particular Cause across all 50 states
+  output$plot2 <-  renderPlot({
+    df2 <- deathInput()
+    ggplot(df2, aes(x = State, y = Age.adjusted.Death.Rate)) + geom_bar(stat = "identity") + ggtitle("Death Rate (per 100,000) per Accident per Year") 
+             + ylab("Adjusted Death Rate")
+  })
+  
+  output$plot3 <-  renderPlot({
+    df2 <- deathInput()
+    ggplot(df2, aes(x = Year, y = Age.adjusted.Death.Rate)) + geom_bar(stat = "identity") + ggtitle("Death Rate (per 100,000) per Accident per Year")
+    + ylab("Adjusted Death Rate")
+  })
+  # Create a Data
+  output$table <- DT::renderDataTable({
+    subset(deathInput(), select = c(State, Cause.Name, Deaths, Age.adjusted.Death.Rate))
+  })
 }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
+
+#State.Death.data %>% filter(Year == 2016 & Cause.Name == "Alzheimer's disease") %>% 
+#ggplot(aes(x = State, y = Deaths)) + geom_bar(stat = 'identity')
+#practice.data1$Year <- factor(practice.data1$Year)
+#filter(practice.data1, State == "Alabama" & Cause.Name == "Alzheimer's disease") %>% 
+# ggplot(aes(x = Year, y = Deaths, group=1)) + geom_line()
 
