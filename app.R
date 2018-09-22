@@ -9,7 +9,7 @@ library(shinythemes)
 Raw.Death.data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States.csv")
 Raw.Death.data$Year <- factor(Raw.Death.data$Year)
 State.Death.data <- filter(Raw.Death.data, State != "United States")
-
+Country.Death.data <- filter(Raw.Death.data, State == "United States")
 # created header along with dropdown menu items
 header <- dashboardHeader(title = "Deaths in America",
                           dropdownMenu(type = "notifications",
@@ -27,7 +27,7 @@ header <- dashboardHeader(title = "Deaths in America",
                                          icon = icon("exclamation point"))
                                        )
                           )
-# created sidebar with put in inputs later)
+# created sidebar with inputs
 sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
@@ -55,6 +55,8 @@ sidebar <- dashboardSidebar(
                 )
           )
 )
+
+
 body <- dashboardBody(tabItems(
                         tabItem("plot", 
                              # fluidRow(
@@ -79,9 +81,29 @@ ui <- dashboardPage(header, sidebar, body)
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-   deathInput <- reactive ({
+  #Reactive Elements 
+  deathInput <- reactive ({
      State.Death.data %>% filter( input$year == Year & input$cause == Cause.Name)
    })
+  totaldeathInput <- reactive({
+    Country.Death.data %>% filter( input$year == Year & input$cause == Cause.Name)
+  })
+   #Gauges and Infoboxes
+  # totaldeathInput
+  # output$total <- renderInfoBox({
+  #   sw <- totaldeathInput()
+  #   
+  #   
+  #   infoBox("Avg Mass", value = num, subtitle = paste(nrow(sw), "characters"), icon = icon("balance-scale"), color = "purple")
+  # })
+  # # Height mean value box
+  # output$height <- renderValueBox({
+  #   sw <- swInput()
+  #   num <- round(mean(sw$height, na.rm = T), 2)
+  #   
+  #   valueBox(subtitle = "Avg Height", value = num, icon = icon("sort-numeric-asc"), color = "green")
+  # })
+   
    #Create Plot that Maps Total Deaths for a Particular Cause across all 50 states  
    output$plot1 <- renderPlot({
      df2 <- deathInput()
