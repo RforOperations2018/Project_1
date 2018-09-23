@@ -32,8 +32,8 @@ header <- dashboardHeader(title = "Deaths in America")
 sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
-    menuItem("Plots", icon = icon("bar-chart"), tabname = "plot"),
-    menuItem("Death Data Table",icon = icon("table"), tabname = "datatable"),
+    menuItem("Plots", icon = icon("bar-chart"), tabName = "plot"),
+    menuItem("Death Data Table", icon = icon("table"), tabName = "datatable"),
     radioButtons("cause",
                 "Pick a cause of death: ",
                 choices = unique(State.Death.data$Cause.Name),
@@ -56,9 +56,11 @@ sidebar <- dashboardSidebar(
                 )
           )
 )
+
 body <- dashboardBody(
   tabItems(
     tabItem("plot",
+            # Don't be afraid to delete stuff. Once you commit it you can always go back and grab it from Git History!
             # fluidRow(
             #   infoBoxOutput("mass"),
             #   valueBoxOutput("height")
